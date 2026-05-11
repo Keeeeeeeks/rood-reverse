@@ -5,22 +5,27 @@
 
 void func_80072050(int);
 void func_80072140(u_long* arg0, u_int arg1);
-void func_800721D0(u_long* buf, int size);
+void func_800721D0(u_long* buf, u_int size);
 int func_8007225C(void);
 int func_800722F0(void);
 u_int func_80072384(void);
+int func_8007239C(char*);
 int DMACallback(int, void (*)(void));
 
-// Commented out functions have delay slot manipulation, probably due to custom linkage
-// used in later PSY-Q versions
+// Milestone native-port-relevant frontier: MDEC/libpress hardware register wrappers.
+// Guarded drafts compile for objdiff/permuter work; normal builds keep asm fallbacks.
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", DecDCTReset);
-/*void DecDCTReset(int mode) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+void DecDCTReset(int mode)
+{
     if (mode == 0) {
         ResetCallback();
     }
     func_80072050(mode);
-}*/
+}
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", DecDCTReset);
+#endif
 
 static int D_80075B44 = 0x40000001;
 static char D_80075B48[] = { 0x02, 0x10, 0x10, 0x13, 0x10, 0x13, 0x16, 0x16, 0x16, 0x16,
@@ -68,29 +73,35 @@ DECDCTENV* DecDCTGetEnv(DECDCTENV* env)
     return env;
 }
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", DecDCTPutEnv);
-/*DECDCTENV* DecDCTPutEnv(DECDCTENV* arg0) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+DECDCTENV* DecDCTPutEnv(DECDCTENV* arg0)
+{
     int i;
-    int *src1, *dst1;
-    int *src2, *dst2;
+    int* src1;
+    int* dst1;
+    int* src2;
+    int* dst2;
 
-    dst1 = D_80075B48;
-    src1 = (int*)&arg0->iq_y;
+    dst1 = (int*)D_80075B48;
+    src1 = (int*)arg0->iq_y;
     for (i = 15; i != -1; i--) {
         *dst1++ = *src1++;
     }
 
-    dst2 = D_80075B88;
-    src2 = (int*)&arg0->iq_c;
+    dst2 = (int*)D_80075B88;
+    src2 = (int*)arg0->iq_c;
     for (i = 15; i != -1; i--) {
         *dst2++ = *src2++;
     }
 
-    func_80072140(D_80075B44, 32);
-    func_80072140(D_80075BC8, 32);
+    func_80072140((u_long*)&D_80075B44, 32);
+    func_80072140((u_long*)&D_80075BC8, 32);
 
     return arg0;
-}*/
+}
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", DecDCTPutEnv);
+#endif
 
 void DecDCTin(u_long* buf, int mode)
 {
@@ -141,78 +152,69 @@ static u_int volatile* D_80075C68[] = { (u_int volatile*)0x1F801098,
     (u_int volatile*)0x1F8010A0, (u_int volatile*)0x1F8010A4, (u_int volatile*)0x1F8010A8,
     (u_int volatile*)0x1F8010B0, (u_int volatile*)0x1F8010B4,
     (u_int volatile*)0x1F8010B8 };
-
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_80072050);
-/*extern int* D_80075C5C;
-extern int volatile* D_80075C68;
-extern int * D_80075C88;
-
-void func_80072050(int arg0) {
-    switch (arg0) {
-    case 0:
-        *D_80075C88 = 0x80000000;
-        *D_80075C5C = 0;
-        *D_80075C68 = 0;
-        *D_80075C88 = 0x60000000;
-        func_80072140(D_80075B44, 32);
-        func_80072140(D_80075BC8, 32);
-        return;
-    case 1:
-        *D_80075C88 = 0x80000000;
-        *D_80075C5C = 0;
-        *D_80075C68 = 0;
-        *D_80075C68;
-        *D_80075C88 = 0x60000000;
-        return;
-    default:
-        printf("MDEC_rest:bad option(%d)\n", arg0);
-        return;
-    }
-}
-*/
-
 static u_int volatile* D_80075C84 = (u_int volatile*)0x1F801820;
 static u_int volatile* D_80075C88 = (u_int volatile*)0x1F801824;
 static u_int volatile* D_80075C8C = (u_int volatile*)0x1F8010F0;
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_80072140);
-/*extern int** D_80075C54;
-extern int* D_80075C58;
-extern int* D_80075C5C;
-extern int* D_80075C84;
-extern int* D_80075C8C;
+#if defined(PERMUTER) || defined(OBJDIFF)
+void func_80072050(int mode)
+{
+    switch (mode) {
+    case 0:
+        *D_80075C88 = 0x80000000;
+        *D_80075C5C = 0;
+        *D_80075C68[0] = 0;
+        *D_80075C88 = 0x60000000;
+        func_80072140((u_long*)&D_80075B44, 0x20);
+        func_80072140((u_long*)&D_80075BC8, 0x20);
+        return;
+    case 1:
+        *D_80075C88 = 0x80000000;
+        *D_80075C5C = 0;
+        *D_80075C68[0] = 0;
+        *D_80075C68[0];
+        *D_80075C88 = 0x60000000;
+        return;
+    default:
+        printf("MDEC_rest:bad option(%d)\n", mode);
+        return;
+    }
+}
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_80072050);
+#endif
 
-void func_80072140(int* arg0, u_int arg1) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+void func_80072140(u_long* arg0, u_int arg1)
+{
     func_8007225C();
-    *D_80075C8C |= 0x88;
-    *D_80075C54 = arg0 + 1;
+    *D_80075C8C = *D_80075C8C | 0x88;
+    *D_80075C54 = (u_int)(arg0 + 1);
     *D_80075C58 = ((arg1 >> 5) << 0x10) | 0x20;
     *D_80075C84 = *arg0;
     *D_80075C5C = 0x01000201;
 }
-*/
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_80072140);
+#endif
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_800721D0);
-/*extern int* D_80075C60;
-extern int* D_80075C64;
-extern int* D_80075C68;
-extern int* D_80075C8C;
-
-void func_800721D0(int arg0, u_int arg1) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+void func_800721D0(u_long* arg0, u_int arg1)
+{
     func_800722F0();
-    *D_80075C8C |= 0x88;
-    *D_80075C68 = 0;
-    *D_80075C60 = arg0;
+    *D_80075C8C = *D_80075C8C | 0x88;
+    *D_80075C68[0] = 0;
+    *D_80075C60 = (u_int)arg0;
     *D_80075C64 = ((arg1 >> 5) << 0x10) | 0x20;
-    *D_80075C68 = 0x01000200;
+    *D_80075C68[0] = 0x01000200;
 }
-*/
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_800721D0);
+#endif
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_8007225C);
-/*void func_8007239C(signed char const*);
-extern int* D_80075C88;
-
-int func_8007225C(void) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_8007225C(void)
+{
     volatile int sp10;
 
     sp10 = 0x100000;
@@ -224,17 +226,17 @@ int func_8007225C(void) {
     }
     return 0;
 }
-*/
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_8007225C);
+#endif
 
-INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_800722F0);
-/*void func_8007239C(signed char const*);
-extern int* D_80075C68;
-
-int func_800722F0(void) {
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800722F0(void)
+{
     volatile int sp10;
 
     sp10 = 0x100000;
-    while (*D_80075C68 & 0x01000000) {
+    while (*D_80075C68[0] & 0x01000000) {
         if (--sp10 == -1) {
             func_8007239C("MDEC_out_sync");
             return -1;
@@ -242,7 +244,9 @@ int func_800722F0(void) {
     }
     return 0;
 }
-*/
+#else
+INCLUDE_ASM("build/src/TITLE/TITLE.PRG/nonmatchings/libpress/LIBPRESS", func_800722F0);
+#endif
 
 u_int func_80072384(void) { return *D_80075C88; }
 
