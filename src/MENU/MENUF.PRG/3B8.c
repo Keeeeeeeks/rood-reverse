@@ -62,6 +62,7 @@ void func_801064D4(int, int, int, int);
 void func_8010664C(int, int, int, char*);
 void func_80106A80(int, int, int, char*);
 void func_80107140(int, int, int, char*, int);
+void func_80107698(int arg0, int arg1, int arg2);
 int _loadIqDis(void);
 int func_80107D4C(void);
 int _loadEscDis(void);
@@ -161,6 +162,7 @@ static int D_80109894;
 static int D_80109898;
 static int D_8010989C;
 static int D_801098A0;
+static P_CODE D_80109784[];
 
 int _loadRankDis(void)
 {
@@ -1640,8 +1642,103 @@ void func_80105F6C(int arg0, int arg1, int arg2, int arg3, int arg4)
     }
 }
 
+#if defined(PERMUTER) || defined(OBJDIFF)
+void func_801060A8(int arg0, int arg1, int arg2, int arg3)
+{
+    RECT rect;
+    char buf[16];
+    DR_AREA* area;
+    void** scratch;
+    int i;
+    int len;
+    int digitIndex;
+    int textureIndex;
+    int offset;
+    int var_s4 = arg3;
+    int var_s5 = arg0;
+    int var_s7 = arg1;
+    int var_fp = arg2;
+
+    if (var_fp < 0) {
+        var_fp = 0;
+    }
+    if (var_fp >= 0x41) {
+        var_fp = 0x40;
+    }
+    if (var_fp <= 0) {
+        return;
+    }
+
+    D_80109784[0].code = var_fp;
+    var_s5 -= (D_801091D8[0xB].w + D_801091D8[0x1A].w + D_801091D8[0xE].w
+                  + D_801091D8[0x18].w + 0xE)
+           >> 1;
+    func_8010664C(var_s5, var_s7, 0xB, (char*)D_80109784);
+    var_s5 += D_801091D8[0xB].w;
+    func_8010664C(var_s5, var_s7, 0x1A, (char*)D_80109784);
+
+    var_s5 += D_801091D8[0x1A].w + 2;
+    scratch = (void**)0x1F800000;
+    area = scratch[0];
+    SetDrawArea(area, &vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip);
+    AddPrim(scratch[1] - 0x1C, area++);
+    scratch[0] = area;
+
+    if (vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.x >= 0x140) {
+        rect.x = 0x140;
+    } else {
+        rect.x = 0;
+    }
+    rect.y = var_s7 - (D_8010988C >> 3);
+    rect.w = 0x140;
+    rect.h = ((D_8010988C >> 3) * 2) + 0x10;
+
+    if (var_s4 < 2) {
+        arg0 = var_s5;
+        var_s7 += 8 + (D_80109878 & 0xF);
+        for (i = 0; i < 3; ++i) {
+            var_s5 = arg0;
+            digitIndex = (((D_80109878 >> 4) + i) - 1) & 0xF;
+            textureIndex = D_80109610[D_80109890][digitIndex].unk0;
+            func_80107698(var_s5, var_s7 - 1, textureIndex);
+            var_s5 += D_801091D8[textureIndex].w;
+            func_80107698(var_s5, var_s7 + 4, 0x18);
+            var_s5 += D_801091D8[0x18].w;
+
+            sprintf(buf, "%d", D_80109610[D_80109890][digitIndex].unk2);
+            len = strlen(buf);
+            for (offset = 0; offset < len; ++offset) {
+                func_80107698(var_s5, var_s7 - 1, buf[offset] - '0');
+                var_s5 += 0xC;
+            }
+            var_s7 -= 0x10;
+        }
+    } else {
+        digitIndex = (D_80109878 >> 4) & 0xF;
+        textureIndex = D_80109610[D_80109890][digitIndex].unk0;
+        func_80105DD8(var_s5, var_s7 - 1, textureIndex, var_fp, 0x7FF2);
+        var_s5 += D_801091D8[textureIndex].w;
+        func_80105DD8(var_s5, var_s7 + 4, 0x18, var_fp, 0x7FF2);
+        var_s5 += D_801091D8[0x18].w;
+
+        sprintf(buf, "%d", D_80109610[D_80109890][digitIndex].unk2);
+        len = strlen(buf);
+        for (offset = 0; offset < len; ++offset) {
+            func_80105DD8(var_s5, var_s7 - 1, buf[offset] - '0', var_fp, 0x7FF2);
+            var_s5 += 0xC;
+        }
+    }
+
+    scratch = (void**)0x1F800000;
+    area = scratch[0];
+    SetDrawArea(area, &rect);
+    AddPrim(scratch[1] - 0x1C, area++);
+    scratch[0] = area;
+}
+#else
 // https://decomp.me/scratch/QECGI
 INCLUDE_ASM("build/src/MENU/MENUF.PRG/nonmatchings/3B8", func_801060A8);
+#endif
 
 void func_801064D4(int arg0, int arg1, int arg2, int arg3)
 {
