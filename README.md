@@ -120,6 +120,7 @@ The project is mostly self-configuring but requires a minimal amount of setup.
 | g++                     | 13.3.0         |
 | gcc-mipsel-linux-gnu    | 12.4.0         |
 | make                    | 4.3            |
+| protobuf-compiler       | 3.21.12        |
 | python3                 | 3.12.3         |
 | python3-venv            | 3.12.3         |
 | rustup                  | 1.26.0         |
@@ -132,6 +133,9 @@ The project is mostly self-configuring but requires a minimal amount of setup.
 - `make -j` should be all that is needed most of the time. The first execution will configure the remaining dependencies in the `tools` directory and extract the files from the disk; from then on it will perform a minimal rebuild. 
 - `make decompme TARGET=path/to/nonmatchings/source.s` uploads the target function to a new decomp.me scratch.
 - `make permute TARGET=path/to/nonmatchings/source.s` invokes the permuter for the target assembly file. 
+- `python3 tools/dev/frontier.py --overlays-only --no-menu --functions` lists remaining `INCLUDE_ASM` frontier files and functions.
+- `python3 -m unittest discover -s tools/dev/tests` runs lightweight tests for repository dev tooling.
+- `make objdiff` and `make commit-check` may build `objdiff-cli` locally; `protobuf-compiler` provides `protoc`, which that Rust build requires.
 - `make remake -j` will delete and re-split the targets; this can be necessary if the dependency management has failed to identify everything that needs rebuilding (in which case a bug report is appreciated!), or if the configuration has changed enough to be no longer valid (e.g. orphaned .d files). It's good practice to run this before submitting a pull request to make sure everything still works.
 - `make format` formats the source files and symbol addresses for consistency. Please run this before submitting a PR.
 - `make clean` simply deletes the `build` and `nonmatchings` directories
