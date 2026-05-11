@@ -4,6 +4,10 @@
 #include "../../SLUS_010.40/main.h"
 #include <stddef.h>
 
+#if defined(PERMUTER) || defined(OBJDIFF)
+#define VS_ABS(value) ((value) < 0 ? -(value) : (value))
+#endif
+
 typedef struct {
     int unk0;
     int unk4;
@@ -132,9 +136,90 @@ int func_800C1034(func_800C0FA8_t* arg0, u_short* arg1)
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1034);
 #endif
 
-INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C110C);
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800C110C(func_800C0FA8_t* arg0, u_short* arg1, int arg2)
+{
+    MATRIX matrix;
+    func_800C0FA8_t2 work;
+    SVECTOR transformed;
+    short* delta;
+    short* components;
+    int i;
+    int scaled;
+    int sum;
+    int limit;
 
+    func_800C0FA8(arg0, &work, &matrix);
+
+    delta = &work.unk0.vx;
+    for (i = 0; i < 3; ++i) {
+        delta[i] = arg1[i] - work.unk10[i];
+    }
+
+    ApplyMatrixSV(&matrix, &work.unk0, &transformed);
+    if (arg2 != 0) {
+        transformed.vy -= arg0->unk4[1] << 4;
+    }
+
+    limit = arg0->unk4[1] << 5;
+    if (limit < VS_ABS(transformed.vy)) {
+        return 0;
+    }
+
+    sum = 0;
+    components = &transformed.vx;
+    for (i = 0; i < 3; ++i) {
+        scaled = (components[i] * work.unk18[i]) >> 12;
+        sum += scaled * scaled;
+    }
+
+    return (sum >> 16) == 0;
+}
+#else
+INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C110C);
+#endif
+
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800C123C(func_800C0FA8_t* arg0, u_short* arg1, int arg2)
+{
+    MATRIX matrix;
+    func_800C0FA8_t2 work;
+    SVECTOR transformed;
+    short* delta;
+    int i;
+    int vertical;
+    int radius;
+    int x;
+    int z;
+    int threshold;
+
+    func_800C0FA8(arg0, &work, &matrix);
+
+    delta = &work.unk0.vx;
+    for (i = 0; i < 3; ++i) {
+        delta[i] = arg1[i] - work.unk10[i];
+    }
+
+    ApplyMatrixSV(&matrix, &work.unk0, &transformed);
+    if (arg2 != 0) {
+        transformed.vy -= arg0->unk4[1] << 5;
+    }
+
+    radius = arg0->unk4[1];
+    if ((radius << 5) < VS_ABS(transformed.vy)) {
+        return 0;
+    }
+
+    vertical = -((transformed.vy << 3) / radius);
+    x = (transformed.vx * work.unk18[0]) >> 12;
+    z = (transformed.vz * work.unk18[2]) >> 12;
+    threshold = 0x100 - vertical;
+
+    return ((x * x) + (z * z)) < (threshold * threshold);
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C123C);
+#endif
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1384);
 
