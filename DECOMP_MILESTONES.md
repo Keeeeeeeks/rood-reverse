@@ -39,6 +39,7 @@ Milestone 2 / Milestone 3 specification.
 - Overlay-only frontier scan, excluding `src/MENU`, currently selects `src/TITLE/TITLE.PRG/libpress/LIBPRESS.c` as the next smallest frontier after `SCREFF2.PRG`, with `7` `INCLUDE_ASM` sites. The scan used `src/TITLE`, `src/BATTLE`, `src/GIM`, and `src/ENDING` only.
 - `TITLE.PRG::libpress/LIBPRESS.c` now has guarded `OBJDIFF`/`PERMUTER` drafts for all seven remaining libpress stubs: `DecDCTReset`, `DecDCTPutEnv`, `func_80072050`, `func_80072140`, `func_800721D0`, `func_8007225C`, and `func_800722F0`. Normal builds still use asm fallbacks because the generated C remains nonmatching, mostly around PSY-Q-style delay-slot/register scheduling. A normal-build removal attempt for the tiny `DecDCTReset` draft was tried and reverted after `TITLE.PRG` failed the byte-match check, confirming that even this candidate still needs instruction scheduling work before its fallback can be removed.
 - The next overlay frontier after libpress is `src/BATTLE/BATTLE.PRG/58578.c` at `17` `INCLUDE_ASM` sites. Work began with guarded drafts for `func_800C4650` and `func_800C1034`; guarded drafts now also cover the ranked safe candidates `func_800C110C`, `func_800C123C`, `func_800C1564`, and `func_800C2254`. Normal builds still use asm fallbacks.
+- Follow-up Battle work began in `src/BATTLE/BATTLE.PRG/573B8.c`, with guarded `OBJDIFF`/`PERMUTER` drafts for the small non-handwritten helpers `func_800BFE34`, `func_800C06E0`, and `func_800C0738`. Normal builds still use asm fallbacks.
 
 ## Next selected frontier
 
