@@ -92,7 +92,45 @@ void func_800C0FA8(func_800C0FA8_t* arg0, func_800C0FA8_t2* arg1, MATRIX* arg2)
     RotMatrix_gte(&arg1->unk0, arg2);
 }
 
+int func_800C1034(func_800C0FA8_t* arg0, u_short* arg1);
+int func_800C110C(func_800C0FA8_t* arg0, u_short* arg1, int arg2);
+int func_800C123C(func_800C0FA8_t* arg0, u_short* arg1, int arg2);
+int func_800C1384(func_800C0FA8_t* arg0, u_short* arg1, int arg2);
+int func_800C1564(void* arg0, void* arg1);
+
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800C1034(func_800C0FA8_t* arg0, u_short* arg1)
+{
+    MATRIX matrix;
+    func_800C0FA8_t2 work;
+    SVECTOR transformed;
+    short* delta;
+    short* components;
+    int i;
+    int scaled;
+    int sum;
+
+    func_800C0FA8(arg0, &work, &matrix);
+
+    delta = &work.unk0.vx;
+    for (i = 0; i < 3; ++i) {
+        delta[i] = arg1[i] - work.unk10[i];
+    }
+
+    ApplyMatrixSV(&matrix, &work.unk0, &transformed);
+
+    sum = 0;
+    components = &transformed.vx;
+    for (i = 0; i < 3; ++i) {
+        scaled = (components[i] * work.unk18[i]) >> 12;
+        sum += scaled * scaled;
+    }
+
+    return (sum >> 16) == 0;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1034);
+#endif
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C110C);
 
@@ -100,7 +138,51 @@ INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C123C);
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1384);
 
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800C1564(void* arg0_raw, void* arg1_raw)
+{
+    func_800C0FA8_t* arg0;
+    u_short* arg1;
+    int saved;
+    int result;
+
+    arg0 = arg0_raw;
+    arg1 = arg1_raw;
+    saved = *(int*)arg0->unk4;
+    result = 0;
+
+    switch (arg0->unk0) {
+    case 1:
+        result = func_800C1034(arg0, arg1);
+        break;
+    case 2:
+        arg0->unk4[1] <<= 1;
+        result = func_800C110C(arg0, arg1, 1);
+        break;
+    case 3:
+        result = func_800C110C(arg0, arg1, 0);
+        break;
+    case 4:
+        result = func_800C123C(arg0, arg1, 0);
+        break;
+    case 5:
+        arg0->unk4[3] = (saved >> 24) + 0x80;
+        result = func_800C123C(arg0, arg1, 1);
+        break;
+    case 6:
+        result = func_800C1384(arg0, arg1, 1);
+        break;
+    case 7:
+        result = func_800C1384(arg0, arg1, 0);
+        break;
+    }
+
+    *(int*)arg0->unk4 = saved;
+    return result;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1564);
+#endif
 
 void func_800C58F8(int); /* extern */
 
@@ -154,7 +236,44 @@ INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C1DC4);
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C20B4);
 
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800C2254(int angle, int index)
+{
+    short* scratch;
+    short* dest;
+    int row;
+    int component;
+    int cosine;
+    int sine;
+    int value;
+
+    scratch = (short*)0x1F800398;
+    dest = (short*)((char*)D_800EB9B8 + 0x48 + (index * 8));
+
+    for (row = 0; row < 0x21; ++row) {
+        short* src = scratch;
+        short* out = dest;
+        for (component = 0; component < 3; ++component) {
+            cosine = rcos(angle);
+            sine = rsin(angle);
+            value = src[0];
+            value += (src[3] * cosine) >> 12;
+            value += (src[6] * sine) >> 12;
+            out[0] = value;
+            src++;
+            out++;
+        }
+        dest[3] = row != 0;
+        ++index;
+        angle += 0x80;
+        dest += 4;
+    }
+
+    return index;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C2254);
+#endif
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C2368);
 
@@ -185,7 +304,34 @@ INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C2B0C);
 
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C2E24);
 
+#if defined(PERMUTER) || defined(OBJDIFF)
+void func_800C4650(char* arg0, int arg1)
+{
+    typedef void (*func_8009FD5C_full_t)(int, int, int);
+    typedef void (*func_8009FE74_full_t)(int, int);
+    int i;
+    int value;
+    char* current;
+    D_800EB9B8_t** statep;
+
+    statep = &D_800EB9B8;
+    current = arg0 + 0xA;
+    for (i = 0; i < arg1; ++i) {
+        value = (u_char)current[-1];
+        if ((value >> 4) == 0) {
+            if (func_800C1564((char*)*statep + 0x10, arg0) != 0) {
+                ((func_8009FD5C_full_t)func_8009FD5C)(value, 0, (signed char)current[0]);
+            } else {
+                ((func_8009FE74_full_t)func_8009FE74)(value, (signed char)current[0]);
+            }
+        }
+        current += 0x18;
+        arg0 += 0x18;
+    }
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", func_800C4650);
+#endif
 
 int vs_battle_mapStickDeadZone(int arg0)
 {
