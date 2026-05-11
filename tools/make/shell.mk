@@ -14,7 +14,7 @@ DIFFFLAGS    ?= -s
 MKDIRFLAGS   ?= -p
 RMFLAGS      ?= -Rf
 
-SYSDEPS       = $(CMAKE) $(CXX) $(PYTHON) $(CPP) $(DOCKER) $(FORMAT) $(RUSTUP)
+SYSDEPS       = $(CMAKE) $(CXX) $(PYTHON) $(CPP) $(DOCKER) $(FORMAT) $(RUSTUP) $(PROTOC)
 
 SHELL_RED    := \033[0;31m
 SHELL_GREEN  := \033[0;32m

@@ -7,6 +7,7 @@ CMAKE    := cmake
 DOCKER   := docker
 CARGO    := cargo
 RUSTUP   := rustup
+PROTOC   := protoc
 
 OBJCOPYFLAGS := -I binary -O elf32-tradlittlemips
 
