@@ -202,6 +202,9 @@ void func_800BE36C(int, int);
 void func_800BE3A0(void);
 void func_800BE3D0(char arg0);
 void func_800BE5A4(short arg0);
+void func_800A9E38(int arg0, int arg1, int arg2);
+void func_800A9EB4(int arg0, int arg1, int arg2);
+int func_80090C2C(int arg0);
 VECTOR* _vectorAdd(VECTOR* arg0, VECTOR* arg1, VECTOR* arg2);
 VECTOR* _vectorSubtract(VECTOR* arg0, VECTOR* arg1, VECTOR* arg2);
 int _atan2FixedPoint(int arg0, int arg1);
@@ -905,7 +908,39 @@ int func_800B7428(u_char* arg0, short arg1)
 }
 
 // https://decomp.me/scratch/hkP4X
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800B7490(u_char* arg0, short arg1 __attribute__((unused)))
+{
+    func_8006EBF8_t sp10;
+    int actorId;
+    int flagId;
+
+    actorId = vs_battle_getShort(arg0 + 1);
+    flagId = vs_battle_getShort(arg0 + 3);
+
+    if (actorId & 0x1000) {
+        actorId &= 0x1F;
+        if (func_8007CF64(actorId) == NULL) {
+            vs_battle_setStateFlag((short)flagId, 0xFF);
+            return 0;
+        }
+    } else {
+        actorId = func_8007CF18(actorId & 0xFFFF);
+        if ((actorId & 0xFFFF) == 1) {
+            vs_battle_setStateFlag((short)flagId, 0xFF);
+            return 0;
+        }
+    }
+
+    func_800A1108(actorId & 0xFFFF, &sp10);
+    vs_battle_setStateFlag((short)flagId, sp10.unk0.unk0.fields.unk0_0);
+    vs_battle_setStateFlag((short)(flagId + 1), sp10.unk0.unk0.fields.unk0_8);
+    vs_battle_setStateFlag((short)(flagId + 2), sp10.unk0.unk0.fields.unk0_16);
+    return 0;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/4A0A8", func_800B7490);
+#endif
 
 int func_800B7574(u_char* arg0, short arg1)
 {
@@ -1130,7 +1165,52 @@ int func_800B7D10(u_char* arg0, short arg1)
 }
 
 // https://decomp.me/scratch/8dS3J
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800B7DC4(u_char* arg0, short arg1 __attribute__((unused)))
+{
+    func_8006EBF8_t sp10;
+    int actorId;
+    int target;
+    int duration;
+
+    actorId = func_800BFE50(vs_battle_getShort(arg0 + 1) & 0xFFFF);
+    duration = -1;
+    if (arg0[5] != 0xFF) {
+        duration = arg0[5];
+    }
+
+    if (arg0[4] != 0) {
+        func_800A1108(actorId & 0xFFFF, &sp10);
+        target = (arg0[3] << 4) - sp10.unk0.unk4.pad;
+        if (target < -0x800) {
+            target += 0x1000;
+        }
+        if (target >= 0x801) {
+            target -= 0x1000;
+        }
+        switch ((signed char)arg0[4]) {
+        case -1:
+            if (target > 0) {
+                target -= 0x1000;
+            }
+            break;
+        case 1:
+            if (target < 0) {
+                target += 0x1000;
+            }
+            break;
+        }
+        func_800A9E38(actorId & 0xFFFF, (short)target, duration);
+    } else {
+        func_800A9EB4(actorId & 0xFFFF, arg0[3] << 4, duration);
+    }
+
+    D_800F4B70[actorId & 0xFFFF] = 1;
+    return 0;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/4A0A8", func_800B7DC4);
+#endif
 
 int func_800B7EF0(u_char* arg0, short arg1)
 {
@@ -1982,7 +2062,45 @@ int func_800B9F90(u_char* arg0, short arg1)
 }
 
 // https://decomp.me/scratch/kvMAx
+#if defined(PERMUTER) || defined(OBJDIFF)
+int func_800B9FC0(u_char* arg0, short arg1 __attribute__((unused)))
+{
+    int temp_v1;
+
+    func_80090C2C(arg0[1] >> 4);
+
+    if (arg0[4] == 0) {
+        temp_v1 = arg0[1] & 0xF;
+        D_800F4B88.unk10 = temp_v1;
+        func_80091320(temp_v1);
+        temp_v1 = arg0[2] << 4;
+        D_800F4B88.unk4 = temp_v1;
+        D_800F4B88.unkA = (arg0[3] << 2) + 0x200;
+        func_8009134C(temp_v1, D_800F4B88.unkA);
+    } else {
+        temp_v1 = (arg0[1] & 0xF) - (u_short)D_800F4B88.unk10;
+        D_800F4B88.unk12 = D_800F4B88.unk10;
+        D_800F4B88.unk14 = temp_v1;
+        temp_v1 = (arg0[3] << 2) - ((u_short)D_800F4B88.unkA - 0x200);
+        D_800F4B88.unkC = D_800F4B88.unkA;
+        D_800F4B88.unkE = temp_v1;
+        temp_v1 = (arg0[2] << 4) - (short)(u_short)D_800F4B88.unk4;
+        D_800F4B88.unk6 = D_800F4B88.unk4;
+        if (temp_v1 < -0x800) {
+            temp_v1 += 0x1000;
+        } else if (temp_v1 >= 0x801) {
+            temp_v1 -= 0x1000;
+        }
+        D_800F4B88.unk8 = temp_v1;
+        D_800F4B88.unk2 = 0;
+        D_800F4B88.unk3 = arg0[4];
+    }
+
+    return 0;
+}
+#else
 INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/4A0A8", func_800B9FC0);
+#endif
 
 int func_800BA0E4(u_char* arg0, short arg1)
 {
