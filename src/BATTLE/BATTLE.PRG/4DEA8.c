@@ -1903,7 +1903,64 @@ int func_800B9D74(u_char* arg0, short arg1)
 }
 
 // https://decomp.me/scratch/cNU0W
-INCLUDE_ASM("build/src/BATTLE/BATTLE.PRG/nonmatchings/4DEA8", func_800B9DB4);
+int func_800B9DB4(u_char* arg0, short arg1)
+{
+    int result;
+
+    if (D_800F4C4E == 0) {
+        if (vs_battle_getStateFlag(172) == 0) {
+            return 0;
+        }
+
+        func_8007C0AC(0, D_800E9B4C[arg0[1]]);
+
+        if (D_800F4C2C == 2 || arg0[2] == 0) {
+        reset: {
+            u_int state = func_800A0BE0(0);
+            int drawWeapons = arg0[1];
+            u_int flags = state;
+
+            if (drawWeapons != 0) {
+                flags = 0x1800;
+                flags = (u_short)(state | flags);
+            } else {
+                flags &= 0xE7FF;
+            }
+
+            func_800A087C(0, flags);
+            func_8009D88C(0);
+        }
+
+            return 0;
+        }
+
+        {
+            int command;
+
+            result = (arg0[2] - 1) * 2;
+            command = (arg0[1] ^ 1) + 109;
+            func_800A0204(0, result + command, 0, 10);
+        }
+
+        func_8009DBDC(0, arg0[1] ^ 1);
+        D_800F4C4E = result = 1;
+    } else {
+        if (D_800F4C2C == 2) {
+            D_800F4C4E = 0;
+            goto reset;
+        }
+
+        if ((func_800A0BE0(0) & 0x80) != 0) {
+            func_800A0204(0, arg0[1] != 0 ? 101 : 6, 0, 10);
+            D_800F4C4E = 0;
+            result = 0;
+        } else {
+            result = 1;
+        }
+    }
+
+    return result;
+}
 
 int func_800B9F28(u_char* arg0, short arg1)
 {
